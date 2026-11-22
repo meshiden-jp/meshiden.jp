@@ -87,6 +87,9 @@ const withMDX = createMDX({
 // Merge MDX config with Next.js config
 export default withMDX(nextConfig)
 
+// 開発中は http（IP アドレス経由の実機確認など）で開くため、https への自動書き換えを外す
+const isDev = process.env.NODE_ENV === "development";
+
 const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://use.fontawesome.com https://kit.fontawesome.com https://ka-f.fontawesome.com https://www.googletagmanager.com https://www.google.com https://www.gstatic.com;
@@ -99,5 +102,5 @@ const cspHeader = `
     object-src 'none';
     frame-ancestors 'self';
     block-all-mixed-content;
-    upgrade-insecure-requests;
+    ${isDev ? "" : "upgrade-insecure-requests;"}
 `;

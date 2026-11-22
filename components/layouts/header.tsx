@@ -43,11 +43,11 @@ const Header = () => {
                             <SheetHeader>
                                 <SheetDescription>
                                     <ul className='text-2xl text-black font-bold grid gap-8 pl-8 text-left'>
-                                        <Nav />
+                                        <Nav inSheet />
                                     </ul>
                                     <div className='text-left pt-16  pl-8'>
                                         <ul className='list-none grid gap-4'>
-                                            <Lowernav />
+                                            <Lowernav inSheet />
                                         </ul>
                                     </div>
                                 </SheetDescription>

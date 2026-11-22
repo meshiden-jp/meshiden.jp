@@ -1,17 +1,29 @@
 import React from 'react'
 import Link from 'next/link'
+import { SheetClose } from '@/components/ui/sheet'
 
-const lowernav = () => {
+const links = [
+  { href: '/disclaimer', label: '免責事項' },
+  { href: '/privacy', label: 'プライバシーポリシー' },
+  { href: '/ai', label: 'AIポリシー' },
+  { href: '/accessibility', label: 'ウェブアクセシビリティ' },
+  { href: '/pride', label: 'プライドポリシー' },
+  // { href: '/sns', label: 'SNS' },
+]
+
+const Lowernav = ({ inSheet = false }: { inSheet?: boolean }) => {
   return (
     <>
-      <li><Link href="/disclaimer"><small>免責事項</small></Link></li>
-      <li><Link href="/privacy"><small>プライバシーポリシー</small></Link></li>
-      <li><Link href="/ai"><small>AIポリシー</small></Link></li>
-      <li><Link href="/accessibility"><small>ウェブアクセシビリティ</small></Link></li>
-      <li><Link href="/pride"><small>プライドポリシー</small></Link></li>
-      {/* <li><Link href="/sns"><small>SNS</small></Link></li> */}
+      {links.map(({ href, label }) => {
+        const link = <Link href={href}><small>{label}</small></Link>
+        return (
+          <li key={href}>
+            {inSheet ? <SheetClose asChild>{link}</SheetClose> : link}
+          </li>
+        )
+      })}
     </>
   )
 }
 
-export default lowernav
+export default Lowernav

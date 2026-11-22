@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { client } from "@/lib/client";
-import { Blog } from "@/app/types/blog";
+import { fetchMergedNews, NewsItem } from "@/lib/news";
 import { Button } from "@/components/ui/button";
 import Skeleton from "../sk_bar";
 import Zero from "@/components/layouts/zero";
@@ -16,7 +15,7 @@ import Error from "@/components/layouts/error"; import {
 import { formatDate } from "@/lib/utils";
 
 export default function BlogPage() {
-  const [blog, setBlog] = useState<Blog[]>([]);
+  const [blog, setBlog] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [hasMore, setHasMore] = useState(false); // 記事が6つ以上あるかを判定
@@ -25,9 +24,10 @@ export default function BlogPage() {
     async function fetchBlogs() {
       try {
         const startTime = Date.now();
-        const data = await client.get({ endpoint: "news", queries: { limit: 7 } }); // ✅ limitを7に変更
-        setBlog(data.contents.slice(0, 6) || []); // ✅ 6記事のみ表示
-        setHasMore(data.contents.length > 6); // ✅ 記事が6つ以上あるか判定
+        // news / tech-blog / work をまとめた新しい順の 7 件（7 件目は「すべて見る」の判定用）
+        const items = await fetchMergedNews(7);
+        setBlog(items.slice(0, 6)); // ✅ 6記事のみ表示
+        setHasMore(items.length > 6); // ✅ 記事が6つ以上あるか判定
         const elapsedTime = Date.now() - startTime; // ✅ データ取得にかかった時間を計算
         const delay = Math.max(1000 - elapsedTime, 0); // ✅ 2秒未満なら残りの時間を待機
 
@@ -69,7 +69,7 @@ export default function BlogPage() {
           <Table>
             <TableBody>
               {blog.map((post) => (
-                <TableRow key={post.id} className="flex flex-wrap sm:table-row border-b bg-none">
+                <TableRow key={post.key} className="flex flex-wrap sm:table-row border-b bg-none">
                   <TableCell className="w-1/4 sm:w-1/12 align-text-top  pl-2 sm:pl-4">
                     {formatDate(post.publishedAt)}
                   </TableCell>

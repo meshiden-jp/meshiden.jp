@@ -3,8 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { client } from "@/lib/client";
-import { Blog } from "@/app/types/blog";
+import { fetchMergedNews, NewsItem } from "@/lib/news";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import Zero from "@/components/layouts/zero";
 import Error from "@/components/layouts/error";
@@ -19,14 +18,6 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import { formatDate } from "@/lib/utils";
-
-// microCMS のレスポンス型
-type NewsListResponse = {
-  contents: Blog[];
-  totalCount: number;
-  offset: number;
-  limit: number;
-};
 
 const POSTS_PER_PAGE = 10;
 
@@ -54,8 +45,8 @@ export default function NewsPage() {
  * useSearchParams / useRouter / usePathname は全部ここで使う
  */
 function NewsPageInner() {
-  const [blog, setBlog] = useState<Blog[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  // news / tech-blog / work をまとめた全件（ページ分けはこの配列を切り出して行う）
+  const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -70,7 +61,13 @@ function NewsPageInner() {
 
   // 総ページ数
   const totalPages =
-    totalCount > 0 ? Math.ceil(totalCount / POSTS_PER_PAGE) : 1;
+    items.length > 0 ? Math.ceil(items.length / POSTS_PER_PAGE) : 1;
+
+  // 現在ページに表示する分
+  const pageItems = items.slice(
+    (currentPage - 1) * POSTS_PER_PAGE,
+    currentPage * POSTS_PER_PAGE
+  );
 
   // page クエリを書き換えた URL を生成
   const createPageUrl = (page: number) => {
@@ -100,18 +97,7 @@ function NewsPageInner() {
         setError(false);
 
         const startTime = Date.now();
-        const offset = (currentPage - 1) * POSTS_PER_PAGE;
-
-        const data = await client.get<NewsListResponse>({
-          endpoint: "news",
-          queries: {
-            limit: POSTS_PER_PAGE,
-            offset,
-          },
-        });
-
-        setBlog(data.contents || []);
-        setTotalCount(data.totalCount || 0);
+        setItems(await fetchMergedNews());
 
         const elapsedTime = Date.now() - startTime;
         const delay = Math.max(1000 - elapsedTime, 0);
@@ -127,7 +113,7 @@ function NewsPageInner() {
     }
 
     fetchBlogs();
-  }, [currentPage]);
+  }, []); // 全件を一度だけ取得し、ページ移動では取り直さない
 
   return (
     <div className="sm:w-[70%] w-[90%] m-auto pb-32">
@@ -151,7 +137,7 @@ function NewsPageInner() {
       )}
 
       {/* ❌ 記事がない場合の表示 */}
-      {!loading && !error && blog.length === 0 && (
+      {!loading && !error && pageItems.length === 0 && (
         <div>
           <Zero />
           <div className="flex justify-center">
@@ -165,13 +151,13 @@ function NewsPageInner() {
       )}
 
       {/* ✅ 記事がある場合の表示 */}
-      {!loading && !error && blog.length > 0 && (
+      {!loading && !error && pageItems.length > 0 && (
         <>
           <Table>
             <TableBody>
-              {blog.map((post) => (
+              {pageItems.map((post) => (
                 <TableRow
-                  key={post.id}
+                  key={post.key}
                   className="flex flex-wrap sm:table-row border-b"
                 >
                   <TableCell className="w-1/4 sm:w-1/12 align-text-top pl-2 sm:pl-4">

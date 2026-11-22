@@ -1,16 +1,28 @@
 import React from 'react'
 import Link from 'next/link'
+import { SheetClose } from '@/components/ui/sheet'
 
-const lists = () => {
+const links = [
+    { href: '/work', label: '作品一覧' },
+    { href: '/profile', label: '自己紹介' },
+    { href: '/news', label: 'お知らせ' },
+    { href: '/blog', label: '技術ブログ' },
+    { href: '/contact', label: 'お問い合わせ' },
+]
+
+const Nav = ({ inSheet = false }: { inSheet?: boolean }) => {
     return (
         <>
-            <li><Link href="/work">作品一覧</Link></li>
-            <li><Link href="/profile">自己紹介</Link></li>
-            <li><Link href="/news">お知らせ</Link></li>
-            <li><Link href="/blog">技術ブログ</Link></li>
-            <li><Link href="/contact">お問い合わせ</Link></li>
+            {links.map(({ href, label }) => {
+                const link = <Link href={href}>{label}</Link>
+                return (
+                    <li key={href}>
+                        {inSheet ? <SheetClose asChild>{link}</SheetClose> : link}
+                    </li>
+                )
+            })}
         </>
     )
 }
 
-export default lists
+export default Nav
